@@ -4,7 +4,7 @@ metadata:
   name: node-app               
   namespace: node-app           
 spec:
-  replicas: 7                     
+  replicas: 4                     
   selector:
     matchLabels:
       app: node-app                  
@@ -18,4 +18,3 @@ spec:
         image: sharara99/node-app:latest
         ports:
         - containerPort: 3000     
-
