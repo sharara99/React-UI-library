@@ -8,10 +8,9 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    sh "cd library"
                     sh "docker build -t sharara99/node-app:${BUILD_NUMBER} ."
 
                     withCredentials([usernamePassword(credentialsId: 'DockerHub', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
