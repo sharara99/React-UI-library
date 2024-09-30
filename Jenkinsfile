@@ -33,7 +33,7 @@ pipeline {
                     sh """
                     kubectl apply -f k8s/namespace.yml
                     kubectl apply -f k8s/service.yml
-                    kubectl apply -f k8s/deployment.yml  // Apply the deployment file
+                    kubectl apply -f k8s/deployment.yml
                     """
                     
                     // Update the Kubernetes deployment with the new Docker image (rolling update)
