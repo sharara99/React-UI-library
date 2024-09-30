@@ -17,4 +17,4 @@ spec:
       - name: node-app
         image: sharara99/node-app:latest
         ports:
-        - containerPort: 3000     
+        - containerPort: 3000
