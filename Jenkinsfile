@@ -11,25 +11,33 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                    // Build the Docker image and tag it with the Jenkins build number
                     sh "docker build -t sharara99/node-app:${BUILD_NUMBER} ."
 
                     withCredentials([usernamePassword(credentialsId: 'DockerHub', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                         sh "docker login -u $DOCKER_USER -p $DOCKER_PASS"
                     }
 
+                    // Push the Docker image to Docker Hub with the build number tag
                     sh "docker push sharara99/node-app:${BUILD_NUMBER}"
                 }
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    echo "Deploying on Kubernetes..."
+                    echo "Deploying to Kubernetes..."
+                    
+                    // Apply the Kubernetes namespace and service YAML files
                     sh """
                     kubectl apply -f k8s/namespace.yml
-                    kubectl apply -f k8s/deployment.yml
                     kubectl apply -f k8s/service.yml
+                    """
+                    
+                    // Update the Kubernetes deployment with the new Docker image (rolling update)
+                    sh """
+                    kubectl set image deployment/node-app node-app=sharara99/node-app:${BUILD_NUMBER} --record
                     """
                 }
             }
@@ -38,7 +46,7 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'Pipeline completed successfully! Kubernetes deployment was updated with the new Docker image.'
         }
         failure {
             echo 'Pipeline failed. Please check the logs for details.'
