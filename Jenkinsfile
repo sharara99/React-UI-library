@@ -29,16 +29,19 @@ pipeline {
                 script {
                     echo "Deploying to Kubernetes..."
                     
-                    // Apply the Kubernetes namespace and service YAML files
+                    // Apply the Kubernetes namespace, service, and deployment YAML files
                     sh """
                     kubectl apply -f k8s/namespace.yml
                     kubectl apply -f k8s/service.yml
                     kubectl apply -f k8s/deployment.yml
                     """
+
+                    // Wait for the deployment to be ready
+                    sh "kubectl rollout status deployment/node-app -n node-app"
                     
                     // Update the Kubernetes deployment with the new Docker image (rolling update)
                     sh """
-                    kubectl set image deployment/node-app node-app=sharara99/node-app:${BUILD_NUMBER} --record
+                    kubectl set image deployment/node-app node-app=sharara99/node-app:${BUILD_NUMBER} --record -n node-app
                     """
                 }
             }
