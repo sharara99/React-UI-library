@@ -1,27 +1,28 @@
-#/bin/bash
+#!/bin/bash
 
-#Create Namespace
-echo "--------------------Create Argocd Namespace--------------------"
+# Create Namespace
+echo "--------------------Creating ArgoCD Namespace--------------------"
 kubectl create ns argocd || true
 
-#Deploy Argocd
-echo "--------------------Deploy Argocd--------------------"
+# Deploy ArgoCD
+echo "--------------------Deploying ArgoCD--------------------"
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-#Sleep 1 miniute
-echo "--------------------Waiting 1m for the pods to start--------------------"
+# Wait for pods to start
+echo "--------------------Waiting 1 minute for the pods to start--------------------"
 sleep 1m
 
-#Change to Nodeport
-echo "--------------------Change Argocd Service to NodePort--------------------"
+# Change Service to NodePort
+echo "--------------------Changing ArgoCD Service to NodePort--------------------"
 kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "NodePort"}}'
 
-#ArgoCD URL
+# Display ArgoCD URL
 echo "--------------------ArgoCD URL--------------------"
 minikube service -n argocd argocd-server --url
 
-#ArgoCD Pass
+# Display ArgoCD Password
 echo "--------------------ArgoCD UI Password--------------------"
 echo "Username: admin"
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d > argo-pass.txt
-cat argo-pass.txt
+PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+echo "Password: $PASSWORD"
+echo "$PASSWORD" > argo-pass.txt
