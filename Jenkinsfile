@@ -28,7 +28,7 @@ pipeline {
                     echo "Deploying ArgoCD using Helm..."
                     sh '''
                         ls -la
-                        if [ -d "k8s/helm/ArgoCD" ]; then
+                        if [ -d "k8s/ArgoCD" ]; then
                             cd k8s/ArgoCD
                             ./deploy-argocd-minikube.sh
                         else
