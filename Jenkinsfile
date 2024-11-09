@@ -22,10 +22,10 @@ pipeline {
             }
         }
 
-        stage('Deploy ArgoCD with Helm') {
+        stage('Deploy ArgoCD with Kubernetes') {
             steps {
                 script {
-                    echo "Deploying ArgoCD using Helm..."
+                    echo "Deploying ArgoCD ..."
                     sh '''
                         ls -la
                         if [ -d "k8s/ArgoCD" ]; then
