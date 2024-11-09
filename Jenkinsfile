@@ -11,38 +11,44 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image and tag it with the Jenkins build number
                     sh "docker build -t sharara99/node-app:${BUILD_NUMBER} ."
 
                     withCredentials([usernamePassword(credentialsId: 'DockerHub', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                         sh "docker login -u $DOCKER_USER -p $DOCKER_PASS"
                     }
 
-                    // Push the Docker image to Docker Hub with the build number tag
                     sh "docker push sharara99/node-app:${BUILD_NUMBER}"
                 }
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy ArgoCD with Helm') {
             steps {
                 script {
-                    echo "Deploying to Kubernetes..."
-                    
-                    // Apply the Kubernetes namespace, service, and deployment YAML files
-                    sh """
-                    kubectl apply -f k8s/namespace.yml
-                    kubectl apply -f k8s/service.yml
-                    kubectl apply -f k8s/deployment.yml
-                    """
+                    echo "Deploying ArgoCD using Helm..."
+                    sh '''
+                        ls -la
+                        if [ -d "k8s/helm/ArgoCD" ]; then
+                            cd k8s/ArgoCD
+                            ./deploy-argocd-minikube.sh
+                        else
+                            echo "Directory k8s/ArgoCD does not exist!"
+                            exit 1
+                        fi
+                    '''
+                }
+            }
+        }
 
-                    // Wait for the deployment to be ready
-                    sh "kubectl rollout status deployment/node-app -n node-app"
-                    
-                    // Update the Kubernetes deployment with the new Docker image (rolling update)
-                    sh """
-                    kubectl set image deployment/node-app node-app=sharara99/node-app:${BUILD_NUMBER} --record -n node-app
-                    """
+        stage('Create ArgoCD Application') {
+            steps {
+                script {
+                    echo "Creating ArgoCD Application..."
+                    sh '''
+                        # Apply the ArgoCD application configuration
+                        cd k8s/ArgoCD
+                        kubectl apply -f argocd-app.yaml
+                    '''
                 }
             }
         }
@@ -50,10 +56,10 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline completed successfully! Kubernetes deployment was updated with the new Docker image.'
+            echo 'Pipeline completed successfully!'
         }
         failure {
-            echo 'Pipeline failed. Please check the logs for details.'
+            echo 'Pipeline failed. Please check the logs for errors.'
         }
     }
 }
